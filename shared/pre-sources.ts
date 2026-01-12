@@ -483,6 +483,88 @@ export const originSources = {
       },
     },
   },
+  "reddit": {
+    name: "Reddit",
+    column: "social",
+    color: "orange",
+    home: "https://www.reddit.com",
+    type: "hottest",
+  },
+  "quora": {
+    name: "Quora",
+    column: "social",
+    color: "red",
+    home: "https://www.quora.com",
+    type: "hottest",
+    disable: true,
+  },
+  "twitter": {
+    name: "Twitter",
+    column: "social",
+    color: "blue",
+    home: "https://twitter.com",
+    type: "hottest",
+    disable: true,
+  },
+  "nytimes": {
+    name: "New York Times",
+    column: "world",
+    color: "gray",
+    home: "https://www.nytimes.com",
+    type: "realtime",
+  },
+  "bbc": {
+    name: "BBC News",
+    column: "world",
+    color: "red",
+    home: "https://www.bbc.com/news",
+    type: "realtime",
+  },
+  "netease": {
+    name: "网易新闻",
+    column: "china",
+    color: "red",
+    home: "https://news.163.com",
+    type: "hottest",
+  },
+  "theverge": {
+    name: "The Verge",
+    column: "tech",
+    color: "violet",
+    home: "https://www.theverge.com",
+    type: "realtime",
+  },
+  "wsj": {
+    name: "Wall Street Journal",
+    column: "world",
+    color: "slate",
+    home: "https://www.wsj.com",
+    type: "realtime",
+    sub: {
+      world: {
+        title: "World",
+        interval: Time.Common,
+      },
+      opinion: {
+        title: "Opinion",
+        interval: Time.Common,
+      },
+    },
+  },
+  "lobsters": {
+    name: "Lobsters",
+    column: "tech",
+    color: "red",
+    home: "https://lobste.rs",
+    type: "hottest",
+  },
+  "gamersky": {
+    name: "游民星空",
+    column: "tech",
+    color: "red",
+    home: "https://www.gamersky.com",
+    type: "hottest",
+  },
 } as const satisfies Record<string, OriginSource>
 
 export function genSources() {

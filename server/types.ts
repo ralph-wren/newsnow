@@ -9,9 +9,12 @@ export interface RSSInfo {
   items: RSSItem[]
 }
 export interface RSSItem {
+  id: string
   title: string
   description: string
   link: string
+  author?: string
+  category?: string[]
   created?: string
 }
 

@@ -1,8 +1,17 @@
+import { myFetch } from "#/utils/fetch"
+import { defineSource } from "#/utils/source"
+
 interface Res {
   data: {
     content: {
       title: string
       content_id: string
+    }
+    content_counter: {
+      hot_rank: number
+      view: number
+      like: number
+      comment_count: number
     }
   }[]
 }
@@ -16,6 +25,9 @@ export default defineSource(async () => {
       id: k.content.content_id,
       title: k.content.title,
       url,
+      extra: {
+        info: `🔥${k.content_counter.hot_rank} · 👁${k.content_counter.view} · 👍${k.content_counter.like} · 💬${k.content_counter.comment_count}`,
+      },
     }
   })
 })

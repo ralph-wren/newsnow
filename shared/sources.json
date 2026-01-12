@@ -534,5 +534,89 @@
     "color": "green",
     "interval": 1800000,
     "title": "热播榜"
+  },
+  "reddit": {
+    "name": "Reddit",
+    "type": "hottest",
+    "column": "social",
+    "home": "https://www.reddit.com",
+    "color": "orange",
+    "interval": 600000
+  },
+  "nytimes": {
+    "name": "New York Times",
+    "type": "realtime",
+    "column": "world",
+    "home": "https://www.nytimes.com",
+    "color": "gray",
+    "interval": 600000
+  },
+  "bbc": {
+    "name": "BBC News",
+    "type": "realtime",
+    "column": "world",
+    "home": "https://www.bbc.com/news",
+    "color": "red",
+    "interval": 600000
+  },
+  "netease": {
+    "name": "网易新闻",
+    "type": "hottest",
+    "column": "china",
+    "home": "https://news.163.com",
+    "color": "red",
+    "interval": 600000
+  },
+  "theverge": {
+    "name": "The Verge",
+    "type": "realtime",
+    "column": "tech",
+    "home": "https://www.theverge.com",
+    "color": "violet",
+    "interval": 600000
+  },
+  "wsj": {
+    "redirect": "wsj-world",
+    "name": "Wall Street Journal",
+    "type": "realtime",
+    "column": "world",
+    "home": "https://www.wsj.com",
+    "color": "slate",
+    "interval": 1800000,
+    "title": "World"
+  },
+  "wsj-world": {
+    "name": "Wall Street Journal",
+    "type": "realtime",
+    "column": "world",
+    "home": "https://www.wsj.com",
+    "color": "slate",
+    "interval": 1800000,
+    "title": "World"
+  },
+  "wsj-opinion": {
+    "name": "Wall Street Journal",
+    "type": "realtime",
+    "column": "world",
+    "home": "https://www.wsj.com",
+    "color": "slate",
+    "interval": 1800000,
+    "title": "Opinion"
+  },
+  "lobsters": {
+    "name": "Lobsters",
+    "type": "hottest",
+    "column": "tech",
+    "home": "https://lobste.rs",
+    "color": "red",
+    "interval": 600000
+  },
+  "gamersky": {
+    "name": "游民星空",
+    "type": "hottest",
+    "column": "tech",
+    "home": "https://www.gamersky.com",
+    "color": "red",
+    "interval": 600000
   }
 }

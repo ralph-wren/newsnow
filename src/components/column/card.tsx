@@ -1,5 +1,5 @@
 import type { NewsItem, SourceID, SourceResponse } from "@shared/types"
-import { useQuery } from "@tanstack/react-query"
+import { useInfiniteQuery } from "@tanstack/react-query"
 import { AnimatePresence, motion, useInView } from "framer-motion"
 import { useWindowSize } from "react-use"
 import { forwardRef, useImperativeHandle } from "react"
@@ -15,10 +15,10 @@ export interface ItemsProps extends React.HTMLAttributes<HTMLDivElement> {
   setHandleRef?: (ref: HTMLElement | null) => void
 }
 
-interface NewsCardProps {
-  id: SourceID
-  setHandleRef?: (ref: HTMLElement | null) => void
-}
+const cacheSources = new Map<SourceID, SourceResponse>()
+const refetchSources = new Set<SourceID>()
+
+export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 export const CardWrapper = forwardRef<HTMLElement, ItemsProps>(({ id, isDragging, setHandleRef, style, ...props }, dndRef) => {
   const ref = useRef<HTMLDivElement>(null)
@@ -52,21 +52,22 @@ export const CardWrapper = forwardRef<HTMLElement, ItemsProps>(({ id, isDragging
 
 function NewsCard({ id, setHandleRef }: NewsCardProps) {
   const { refresh } = useRefetch()
-  const { data, isFetching, isError } = useQuery({
+  const { data, isFetching, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["source", id],
-    queryFn: async ({ queryKey }) => {
+    initialPageParam: 1,
+    queryFn: async ({ queryKey, pageParam = 1 }) => {
       const id = queryKey[1] as SourceID
-      let url = `/s?id=${id}`
+      let url = `s?id=${id}&page=${pageParam}&size=30`
       const headers: Record<string, any> = {}
-      if (refetchSources.has(id)) {
-        url = `/s?id=${id}&latest`
+      if (refetchSources.has(id) && pageParam === 1) {
+        url = `s?id=${id}&latest&page=${pageParam}&size=30`
         const jwt = safeParseString(localStorage.getItem("jwt"))
         if (jwt) headers.Authorization = `Bearer ${jwt}`
         refetchSources.delete(id)
-      } else if (cacheSources.has(id)) {
+      } else if (cacheSources.has(id) && pageParam === 1 && !refetchSources.has(id)) {
         // wait animation
         await delay(200)
-        return cacheSources.get(id)
+        return cacheSources.get(id)!
       }
 
       const response: SourceResponse = await myFetch(url, {
@@ -75,7 +76,7 @@ function NewsCard({ id, setHandleRef }: NewsCardProps) {
 
       function diff() {
         try {
-          if (response.items && sources[id].type === "hottest" && cacheSources.has(id)) {
+          if (response.items && sources[id].type === "hottest" && cacheSources.has(id) && pageParam === 1) {
             response.items.forEach((item, i) => {
               const o = cacheSources.get(id)!.items.findIndex(k => k.id === item.id)
               item.extra = {
@@ -91,8 +92,14 @@ function NewsCard({ id, setHandleRef }: NewsCardProps) {
 
       diff()
 
-      cacheSources.set(id, response)
+      if (pageParam === 1) {
+        cacheSources.set(id, response)
+      }
       return response
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage.items || lastPage.items.length < 30) return undefined
+      return allPages.length + 1
     },
     placeholderData: prev => prev,
     staleTime: Infinity,
@@ -103,6 +110,9 @@ function NewsCard({ id, setHandleRef }: NewsCardProps) {
   })
 
   const { isFocused, toggleFocus } = useFocusWith(id)
+
+  const items = useMemo(() => data?.pages.flatMap(page => page.items) || [], [data])
+  const updatedTime = data?.pages?.[0]?.updatedTime
 
   return (
     <>
@@ -127,13 +137,13 @@ function NewsCard({ id, setHandleRef }: NewsCardProps) {
               </span>
               {sources[id]?.title && <span className={$("text-sm", `color-${sources[id].color} bg-base op-80 bg-op-50! px-1 rounded`)}>{sources[id].title}</span>}
             </span>
-            <span className="text-xs op-70"><UpdatedTime isError={isError} updatedTime={data?.updatedTime} /></span>
+            <span className="text-xs op-70"><UpdatedTime isError={isError} updatedTime={updatedTime} /></span>
           </span>
         </div>
         <div className={$("flex gap-2 text-lg", `color-${sources[id].color}`)}>
           <button
             type="button"
-            className={$("btn i-ph:arrow-counter-clockwise-duotone", isFetching && "animate-spin i-ph:circle-dashed-duotone")}
+            className={$("btn i-ph:arrow-counter-clockwise-duotone", isFetching && !isFetchingNextPage && "animate-spin i-ph:circle-dashed-duotone")}
             onClick={() => refresh(id)}
           />
           <button
@@ -154,7 +164,7 @@ function NewsCard({ id, setHandleRef }: NewsCardProps) {
       <OverlayScrollbar
         className={$([
           "h-full p-2 overflow-y-auto rounded-2xl bg-base bg-op-70!",
-          isFetching && `animate-pulse`,
+          isFetching && !data && `animate-pulse`,
           `sprinkle-${sources[id].color}`,
         ])}
         options={{
@@ -162,11 +172,57 @@ function NewsCard({ id, setHandleRef }: NewsCardProps) {
         }}
         defer
       >
-        <div className={$("transition-opacity-500", isFetching && "op-20")}>
-          {!!data?.items?.length && (sources[id].type === "hottest" ? <NewsListHot items={data.items} /> : <NewsListTimeLine items={data.items} />)}
+        <div className={$("transition-opacity-500", isFetching && !data && "op-20")}>
+          {!!items.length && (sources[id].type === "hottest" ? <NewsListHot items={items} /> : <NewsListTimeLine items={items} />)}
+          <LoadMore
+            hasNextPage={hasNextPage}
+            fetchNextPage={fetchNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+          />
         </div>
       </OverlayScrollbar>
     </>
+  )
+}
+
+function LoadMore({
+  hasNextPage,
+  fetchNextPage,
+  isFetchingNextPage,
+}: {
+  hasNextPage: boolean
+  fetchNextPage: () => void
+  isFetchingNextPage: boolean
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage()
+        }
+      },
+      { threshold: 0.1 },
+    )
+
+    if (ref.current) {
+      observer.observe(ref.current)
+    }
+
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  if (!hasNextPage) return null
+
+  return (
+    <div
+      ref={ref}
+      className="py-2 flex justify-center text-xs op-50 cursor-pointer hover:op-100"
+      onClick={() => !isFetchingNextPage && fetchNextPage()}
+    >
+      {isFetchingNextPage ? "加载中..." : "加载更多"}
+    </div>
   )
 }
 

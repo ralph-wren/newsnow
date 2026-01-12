@@ -1,15 +1,16 @@
 import process from "node:process"
 import type { NewsItem } from "@shared/types"
 
-export default defineSource(async () => {
+export default defineSource(async (page, limit) => {
   const apiToken = process.env.PRODUCTHUNT_API_TOKEN
   const token = `Bearer ${apiToken}`
   if (!apiToken) {
     throw new Error("PRODUCTHUNT_API_TOKEN is not set")
   }
+  const size = (page || 1) * (limit || 30)
   const query = `
     query {
-      posts(first: 30, order: VOTES) {
+      posts(first: ${size}, order: VOTES) {
         edges {
           node {
             id

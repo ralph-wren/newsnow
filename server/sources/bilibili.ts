@@ -88,8 +88,9 @@ interface HotVideoRes {
   }
 }
 
-const hotSearch = defineSource(async () => {
-  const url = "https://s.search.bilibili.com/main/hotword?limit=30"
+const hotSearch = defineSource(async (page, limit) => {
+  const size = (page || 1) * (limit || 30)
+  const url = `https://s.search.bilibili.com/main/hotword?limit=${size}`
   const res: WapRes = await myFetch(url)
 
   return res.list.map(k => ({

@@ -63,4 +63,4 @@ export interface SourceOption {
   hiddenDate?: boolean
 }
 
-export type SourceGetter = () => Promise<NewsItem[]>
+export type SourceGetter = (page?: number, limit?: number) => Promise<NewsItem[] | { items: NewsItem[], total?: number }>

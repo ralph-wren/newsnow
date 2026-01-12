@@ -27,8 +27,9 @@ interface Res {
   message: string
 }
 
-const flash = defineSource(async () => {
-  const res: Res = await myFetch("https://api.mktnews.net/api/flash?type=0&limit=50")
+const flash = defineSource(async (page, limit) => {
+  const size = (page || 1) * (limit || 50)
+  const res: Res = await myFetch(`https://api.mktnews.net/api/flash?type=0&limit=${size}`)
 
   return res.data
     .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())

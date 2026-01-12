@@ -25,8 +25,10 @@ const relativeTimeToDate = function (timeStr: string) {
   return new Date(Date.now() - msAgo).valueOf()
 }
 
-const source = defineSource(async () => {
-  const html: any = await myFetch("https://www.ghxi.com/category/all")
+const source = defineSource(async (page) => {
+  const p = page || 1
+  const url = p === 1 ? "https://www.ghxi.com/category/all" : `https://www.ghxi.com/category/all/page/${p}`
+  const html: any = await myFetch(url)
   const $ = cheerio.load(html)
   const news: NewsItem[] = []
   $(".sec-panel .sec-panel-body .post-loop li").each((_, elem) => {
@@ -55,7 +57,7 @@ const source = defineSource(async () => {
     }
   })
 
-  return news
+  return { items: news }
 })
 
 export default proxySource("https://newsnow-omega-one.vercel.app/api/s?id=ghxi&latest=", source)

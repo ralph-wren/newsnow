@@ -56,8 +56,18 @@ export default defineEventHandler(async (event): Promise<SourceResponse> => {
     }
 
     try {
-      const newData = (await getters[id]()).slice(0, 30)
-      if (cacheTable && newData.length) {
+      const page = Number.parseInt(query.page as string) || 1
+      const size = Number.parseInt(query.size as string) || 30
+      const result = await getters[id](page, size)
+      let newData: any[] = []
+
+      if (Array.isArray(result)) {
+        newData = result.slice((page - 1) * size, page * size)
+      } else {
+        newData = result.items
+      }
+
+      if (cacheTable && newData.length && page === 1) {
         if (event.context.waitUntil) event.context.waitUntil(cacheTable.set(id, newData))
         else await cacheTable.set(id, newData)
       }

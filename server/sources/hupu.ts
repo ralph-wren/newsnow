@@ -5,7 +5,7 @@ interface HotItem {
   mobileUrl: string
 }
 
-export default defineSource(async () => {
+export default defineSource(async (page, size) => {
   // 获取虎扑新热榜页面的HTML内容
   const html = await myFetch(`https://bbs.hupu.com/topic-daily-hot`)
 
@@ -33,5 +33,10 @@ export default defineSource(async () => {
     })
   }
 
-  return result
+  // 支持分页
+  const limit = size || 30
+  const p = page || 1
+  const start = (p - 1) * limit
+  const end = p * limit
+  return { items: result.slice(start, end) }
 })

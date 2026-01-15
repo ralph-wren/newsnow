@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio"
 
-export default defineSource(async () => {
+export default defineSource(async (page, size) => {
   const baseurl = "https://s.weibo.com"
   const url = `${baseurl}/top/summary?cate=realtimehot`
 
@@ -49,5 +49,11 @@ export default defineSource(async () => {
       }
     }
   })
-  return hotNews
+
+  // 支持分页
+  const limit = size || 30
+  const p = page || 1
+  const start = (p - 1) * limit
+  const end = p * limit
+  return { items: hotNews.slice(start, end) }
 })

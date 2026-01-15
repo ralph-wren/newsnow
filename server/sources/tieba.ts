@@ -12,10 +12,16 @@ interface Res {
   }
 }
 
-export default defineSource(async () => {
+export default defineSource(async (page, size) => {
   const url = "https://tieba.baidu.com/hottopic/browse/topicList"
   const res: Res = await myFetch(url)
-  return res.data.bang_topic.topic_list
+
+  const limit = size || 30
+  const p = page || 1
+  const start = (p - 1) * limit
+  const end = p * limit
+
+  const items = res.data.bang_topic.topic_list.slice(start, end)
     .map((k) => {
       return {
         id: k.topic_id,
@@ -23,4 +29,5 @@ export default defineSource(async () => {
         url: k.topic_url,
       }
     })
+  return { items }
 })

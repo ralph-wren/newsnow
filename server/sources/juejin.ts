@@ -16,10 +16,16 @@ interface Res {
   }[]
 }
 
-export default defineSource(async () => {
+export default defineSource(async (page, size) => {
   const url = `https://api.juejin.cn/content_api/v1/content/article_rank?category_id=1&type=hot&spider=0`
   const res: Res = await myFetch(url)
-  return res.data.map((k) => {
+
+  const limit = size || 30
+  const p = page || 1
+  const start = (p - 1) * limit
+  const end = p * limit
+
+  const items = res.data.slice(start, end).map((k) => {
     const url = `https://juejin.cn/post/${k.content.content_id}`
     return {
       id: k.content.content_id,
@@ -30,4 +36,5 @@ export default defineSource(async () => {
       },
     }
   })
+  return { items }
 })

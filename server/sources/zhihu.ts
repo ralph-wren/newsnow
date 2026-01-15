@@ -35,10 +35,12 @@ interface Res {
 }
 
 export default defineSource({
-  zhihu: async () => {
-    const url = "https://www.zhihu.com/api/v3/feed/topstory/hot-list-web?limit=20&desktop=true"
+  zhihu: async (page, size) => {
+    const limit = size || 30
+    const offset = ((page || 1) - 1) * limit
+    const url = `https://www.zhihu.com/api/v3/feed/topstory/hot-list-web?limit=${limit}&offset=${offset}&desktop=true`
     const res: Res = await myFetch(url)
-    return res.data
+    const items = res.data
       .map((k) => {
         return {
           id: k.target.link.url.match(/(\d+)$/)?.[1] ?? k.target.link.url,
@@ -50,5 +52,6 @@ export default defineSource({
           url: k.target.link.url,
         }
       })
+    return { items }
   },
 })

@@ -12,10 +12,16 @@ interface Res {
   }[]
 }
 
-export default defineSource(async () => {
+export default defineSource(async (page, size) => {
   const url = "https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc"
   const res: Res = await myFetch(url)
-  return res.data
+
+  const limit = size || 30
+  const p = page || 1
+  const start = (p - 1) * limit
+  const end = p * limit
+
+  const items = res.data.slice(start, end)
     .map((k) => {
       return {
         id: k.ClusterIdStr,
@@ -26,4 +32,5 @@ export default defineSource(async () => {
         },
       }
     })
+  return { items }
 })

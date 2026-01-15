@@ -32,6 +32,9 @@ export const columns = {
 export const fixedColumnIds = ["focus", "hottest", "realtime"] as const satisfies Partial<ColumnID>[]
 export const hiddenColumns = Object.keys(columns).filter(id => !fixedColumnIds.includes(id as any)) as HiddenColumnID[]
 
+// 获取所有非重定向的新闻源
+const allSources = typeSafeObjectEntries(sources).filter(([, v]) => !v.redirect).map(([k]) => k)
+
 export const metadata: Metadata = typeSafeObjectFromEntries(typeSafeObjectEntries(columns).map(([k, v]) => {
   switch (k) {
     case "focus":
@@ -40,14 +43,16 @@ export const metadata: Metadata = typeSafeObjectFromEntries(typeSafeObjectEntrie
         sources: [] as SourceID[],
       }]
     case "hottest":
+      // 最热页面展示全部新闻源，按热度排序（前端处理）
       return [k, {
         name: v.zh,
-        sources: typeSafeObjectEntries(sources).filter(([, v]) => v.type === "hottest" && !v.redirect).map(([k]) => k),
+        sources: allSources,
       }]
     case "realtime":
+      // 实时页面展示全部新闻源，按更新时间排序（前端处理）
       return [k, {
         name: v.zh,
-        sources: typeSafeObjectEntries(sources).filter(([, v]) => v.type === "realtime" && !v.redirect).map(([k]) => k),
+        sources: allSources,
       }]
     default:
       return [k, {

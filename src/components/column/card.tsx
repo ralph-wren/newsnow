@@ -15,7 +15,7 @@ export interface ItemsProps extends React.HTMLAttributes<HTMLDivElement> {
   setHandleRef?: (ref: HTMLElement | null) => void
 }
 
-const cacheSources = new Map<SourceID, SourceResponse>()
+export const cacheSources = new Map<SourceID, SourceResponse>()
 const refetchSources = new Set<SourceID>()
 
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))

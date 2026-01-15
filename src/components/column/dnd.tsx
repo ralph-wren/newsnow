@@ -13,13 +13,50 @@ import { DndContext } from "../common/dnd"
 import { useSortable } from "../common/dnd/useSortable"
 import { OverlayScrollbar } from "../common/overlay-scrollbar"
 import type { ItemsProps } from "./card"
-import { CardWrapper } from "./card"
-import { currentSourcesAtom } from "~/atoms"
+import { CardWrapper, cacheSources } from "./card"
+import { currentColumnIDAtom, currentSourcesAtom } from "~/atoms"
 
 const AnimationDuration = 200
 const WIDTH = 350
+
+// 根据页面类型对新闻源进行排序
+function useSortedItems(items: SourceID[], columnId: string) {
+  return useMemo(() => {
+    // focus 页面不排序，保持用户自定义顺序
+    if (columnId === "focus") {
+      return items
+    }
+
+    const sortedItems = [...items]
+
+    if (columnId === "realtime") {
+      // 实时页面：按更新时间排序（最新的在前）
+      sortedItems.sort((a, b) => {
+        const cacheA = cacheSources.get(a)
+        const cacheB = cacheSources.get(b)
+        const timeA = cacheA?.updatedTime ? new Date(cacheA.updatedTime).getTime() : 0
+        const timeB = cacheB?.updatedTime ? new Date(cacheB.updatedTime).getTime() : 0
+        return timeB - timeA
+      })
+    } else if (columnId === "hottest") {
+      // 最热页面：按热度排序（items 数量越多越热）
+      sortedItems.sort((a, b) => {
+        const cacheA = cacheSources.get(a)
+        const cacheB = cacheSources.get(b)
+        const countA = cacheA?.items?.length ?? 0
+        const countB = cacheB?.items?.length ?? 0
+        return countB - countA
+      })
+    }
+
+    return sortedItems
+  }, [items, columnId])
+}
+
 export function Dnd() {
   const [items, setItems] = useAtom(currentSourcesAtom)
+  const currentColumnId = useAtomValue(currentColumnIDAtom)
+  const sortedItems = useSortedItems(items, currentColumnId)
   const [parent] = useAutoAnimate({ duration: AnimationDuration })
   useEntireQuery(items)
   const { width } = useWindowSize()
@@ -28,7 +65,7 @@ export function Dnd() {
     return Math.min(width - 32, WIDTH)
   }, [width])
 
-  if (!items.length) return null
+  if (!sortedItems.length) return null
 
   return (
     <DndWrapper items={items} setItems={setItems} isSingleColumn={isMobile}>
@@ -60,10 +97,10 @@ export function Dnd() {
             },
           }}
         >
-          {items.map((id, index) => (
+          {sortedItems.map((id, index) => (
             <motion.li
               key={id}
-              className={$(isMobile && "flex-shrink-0", isMobile && index === items.length - 1 && "mr-2")}
+              className={$(isMobile && "flex-shrink-0", isMobile && index === sortedItems.length - 1 && "mr-2")}
               style={isMobile ? { width: `${width - 16 > WIDTH ? WIDTH : width - 16}px` } : undefined}
               transition={{
                 type: "tween",

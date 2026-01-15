@@ -496,7 +496,7 @@ export const originSources = {
     color: "red",
     home: "https://www.quora.com",
     type: "hottest",
-    disable: true,
+    interval: Time.Common,
   },
   "twitter": {
     name: "Twitter",
@@ -504,7 +504,13 @@ export const originSources = {
     color: "blue",
     home: "https://twitter.com",
     type: "hottest",
-    disable: true,
+  },
+  "telegram": {
+    name: "Telegram",
+    column: "social",
+    color: "blue",
+    home: "https://telegram.org",
+    type: "hottest",
   },
   "nytimes": {
     name: "New York Times",

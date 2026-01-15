@@ -1,6 +1,13 @@
 import { defineSource } from "#/utils/source"
 import { rss2json } from "#/utils/rss2json"
 
+function formatDescription(desc: any): string | undefined {
+  if (!desc) return undefined
+  if (typeof desc === "string") return desc
+  if (desc.$text) return desc.$text
+  return undefined
+}
+
 async function world() {
   const rss = await rss2json("https://feeds.a.dj.com/rss/RSSWorldNews.xml")
   if (!rss) return []
@@ -10,7 +17,7 @@ async function world() {
     url: item.link,
     extra: {
       date: item.created,
-      hover: item.description,
+      hover: formatDescription(item.description),
     },
   }))
 }
@@ -24,7 +31,7 @@ async function opinion() {
     url: item.link,
     extra: {
       date: item.created,
-      hover: item.description,
+      hover: formatDescription(item.description),
     },
   }))
 }

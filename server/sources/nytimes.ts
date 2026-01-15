@@ -11,25 +11,6 @@ function formatValue(val: any): string | undefined {
   return undefined
 }
 
-function formatCategory(category: any): string | undefined {
-  if (!category) return undefined
-  if (typeof category === "string") return category
-  if (Array.isArray(category)) {
-    const result = category.map((c: any) => {
-      if (typeof c === "string") return c
-      if (c && typeof c === "object") {
-        return c.$text || c._ || c.term || c["#text"] || ""
-      }
-      return ""
-    }).filter(Boolean)
-    return result.length > 0 ? result.join(" · ") : undefined
-  }
-  if (typeof category === "object") {
-    return category.$text || category._ || category.term || category["#text"] || undefined
-  }
-  return undefined
-}
-
 export default defineSource(async () => {
   const rss = await rss2json("https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml")
   if (!rss) return []
@@ -39,7 +20,7 @@ export default defineSource(async () => {
     url: item.link,
     extra: {
       date: formatValue(item.created),
-      info: formatCategory(item.category),
+      // 去掉分类信息，只保留日期
     },
   }))
 })

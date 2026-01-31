@@ -31,8 +31,9 @@ export default defineSource(async () => {
   const baseURL = "https://m.douban.com/rexxar/api/v2/subject/recent_hot/movie"
   const res: HotMoviesRes = await myFetch(baseURL, {
     headers: {
-      Referer: "https://movie.douban.com/",
-      Accept: "application/json, text/plain, */*",
+      "Referer": "https://movie.douban.com/",
+      "Accept": "application/json, text/plain, */*",
+      "User-Agent": "Mozilla/5.0",
     },
   })
   return res.items.map(movie => ({
